@@ -1,0 +1,48 @@
+-- TODO: Define database schema
+-- Tables needed:
+-- - users
+-- - tours
+-- - transfers
+-- - packages
+-- - bookings
+-- - payments
+-- - email_logs
+
+-- Example structure (PostgreSQL/Supabase):
+-- CREATE TABLE users (
+--   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+--   email TEXT UNIQUE NOT NULL,
+--   name TEXT,
+--   role TEXT DEFAULT 'user',
+--   created_at TIMESTAMP DEFAULT NOW(),
+--   updated_at TIMESTAMP DEFAULT NOW()
+-- );
+
+-- CREATE TABLE tours (
+--   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+--   title TEXT NOT NULL,
+--   slug TEXT UNIQUE NOT NULL,
+--   description TEXT,
+--   price DECIMAL(10, 2) NOT NULL,
+--   image TEXT,
+--   duration INTEGER,
+--   location TEXT,
+--   created_at TIMESTAMP DEFAULT NOW(),
+--   updated_at TIMESTAMP DEFAULT NOW()
+-- );
+
+-- CREATE TABLE bookings (
+--   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+--   user_id UUID REFERENCES users(id),
+--   tour_id UUID REFERENCES tours(id),
+--   status TEXT DEFAULT 'pending',
+--   payment_status TEXT DEFAULT 'pending',
+--   total_amount DECIMAL(10, 2) NOT NULL,
+--   paid_amount DECIMAL(10, 2) DEFAULT 0,
+--   deposit_amount DECIMAL(10, 2) DEFAULT 0,
+--   booking_date TIMESTAMP DEFAULT NOW(),
+--   travel_date TIMESTAMP,
+--   participants INTEGER DEFAULT 1,
+--   created_at TIMESTAMP DEFAULT NOW(),
+--   updated_at TIMESTAMP DEFAULT NOW()
+-- );
