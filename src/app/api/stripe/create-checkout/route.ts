@@ -121,12 +121,18 @@ export async function POST(request: Request) {
       mode: "payment",
       metadata: {
         booking_id: booking.id,
+        bookingId: booking.id, // Duplicate for compatibility
         pay_percent: depositChoice.toString(),
+        pay_type: "deposit",
+        paymentType: "deposit", // Duplicate for compatibility
       },
       payment_intent_data: {
         metadata: {
           booking_id: booking.id,
+          bookingId: booking.id,
           pay_percent: depositChoice.toString(),
+          pay_type: "deposit",
+          paymentType: "deposit",
         },
       },
       success_url: `${siteUrl}/booking/success?bookingId=${booking.id}&t=${publicViewToken}`,

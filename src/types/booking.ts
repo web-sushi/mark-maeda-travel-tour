@@ -1,7 +1,7 @@
 import { VehicleSelection } from "./vehicle";
 
 export type BookingStatus = "pending" | "confirmed" | "cancelled" | "completed";
-export type PaymentStatus = "unpaid" | "partial" | "paid" | "refunded";
+export type PaymentStatus = "unpaid" | "partial" | "paid" | "refunded" | "payment_failed";
 
 export interface BookingItem {
   type: "tour" | "transfer" | "package";
