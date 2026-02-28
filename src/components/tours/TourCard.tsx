@@ -32,15 +32,15 @@ export default function TourCard({ tour }: TourCardProps) {
   return (
     <div className="rounded-lg border bg-white shadow-sm hover:shadow-md transition-shadow overflow-hidden">
       {firstImage ? (
-        <div className="w-full aspect-[16/9] relative bg-gray-200">
+        <div className="w-full h-48 relative bg-gray-200 overflow-hidden">
           <img
             src={firstImage}
             alt={tour.title}
-            className="w-full h-full object-cover object-center"
+            className="w-full h-full object-cover"
           />
         </div>
       ) : (
-        <div className="w-full aspect-[16/9] bg-gradient-to-br from-gray-200 via-gray-100 to-gray-200 flex items-center justify-center">
+        <div className="w-full h-48 bg-gradient-to-br from-gray-200 via-gray-100 to-gray-200 flex items-center justify-center">
           <span className="text-gray-400">No image</span>
         </div>
       )}

@@ -106,8 +106,7 @@ export default function TransfersBrowser({
   const hasResults = visibleCategories.length > 0;
 
   return (
-    /* iOS Safari Fix: isolation-isolate creates proper stacking context for carousel gradients */
-    <div className="space-y-8 py-12 isolation-isolate">
+    <div className="space-y-8 py-12">
       {/* Filter Bar */}
       <TransferFilterBar
         fromValue={fromFilter}
