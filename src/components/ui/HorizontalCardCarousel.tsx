@@ -30,15 +30,25 @@ export default function HorizontalCardCarousel({
       )}
 
       {/* Carousel Container with Fade Gradient */}
-      <div className="relative">
-        {/* Left Fade Gradient */}
-        <div className="absolute left-0 top-0 bottom-0 w-8 sm:w-16 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none" />
+      {/* iOS Safari Fix: Use isolation to create proper stacking context */}
+      <div className="relative isolation-isolate">
+        {/* Left Fade Gradient - iOS Safari: explicit z-index with pointer-events-none */}
+        <div 
+          className="absolute left-0 top-0 bottom-0 w-8 sm:w-16 bg-gradient-to-r from-white to-transparent pointer-events-none"
+          style={{ zIndex: 10 }}
+        />
         
-        {/* Right Fade Gradient */}
-        <div className="absolute right-0 top-0 bottom-0 w-8 sm:w-16 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none" />
+        {/* Right Fade Gradient - iOS Safari: explicit z-index with pointer-events-none */}
+        <div 
+          className="absolute right-0 top-0 bottom-0 w-8 sm:w-16 bg-gradient-to-l from-white to-transparent pointer-events-none"
+          style={{ zIndex: 10 }}
+        />
 
-        {/* Horizontal Scroll Container */}
-        <div className="overflow-x-auto scrollbar-hide pb-4">
+        {/* Horizontal Scroll Container - iOS Safari: positioned and below gradients */}
+        <div 
+          className="overflow-x-auto scrollbar-hide pb-4 relative"
+          style={{ zIndex: 1 }}
+        >
           <div className="flex gap-4 px-4 sm:px-6 lg:px-8 snap-x snap-mandatory">
             {children}
           </div>

@@ -209,7 +209,8 @@ export default function ToursListClient({ tours }: ToursListClientProps) {
       </div>
 
       {/* Tours Display */}
-      <div className="py-12 mt-8">
+      {/* iOS Safari Fix: isolation-isolate creates proper stacking context */}
+      <div className="py-12 mt-8 isolation-isolate">
         {filteredTours.length > 0 ? (
           <HorizontalCardCarousel
             title={

@@ -56,6 +56,10 @@ export default function ListingCard({
     <Link href={href}>
       <div
         className={`rounded-lg border border-gray-200 bg-white shadow-sm transition-all duration-200 overflow-hidden h-full flex flex-col group cursor-pointer ${getVariantStyles()}`}
+        style={{ 
+          /* iOS Safari Fix: will-change hint for better transform performance */
+          willChange: 'transform'
+        }}
       >
         {/* Image Section - Fixed Height */}
         <div className="w-full aspect-[16/9] relative bg-gradient-to-br from-gray-200 via-gray-100 to-gray-200 overflow-hidden">
