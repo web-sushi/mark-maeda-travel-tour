@@ -30,9 +30,9 @@ export default function HorizontalCardCarousel({
       )}
 
       {/* Horizontal Scroll Container - Simple structure matching Home page */}
-      <div className="relative">
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="overflow-x-auto scrollbar-hide pb-4">
-          <div className="flex gap-4 px-4 sm:px-6 lg:px-8 snap-x snap-mandatory">
+          <div className="flex gap-4 snap-x snap-mandatory">
             {children}
           </div>
         </div>

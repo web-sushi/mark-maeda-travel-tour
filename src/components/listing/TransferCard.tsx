@@ -30,20 +30,20 @@ export default function TransferCard({ transfer }: TransferCardProps) {
   return (
     <Link
       href={`/transfers/${transfer.slug}`}
-      className="block bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow h-full"
+      className="block bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow"
     >
       {/* Image */}
       {showImage ? (
-        <div className="w-full h-48 bg-gray-200 relative overflow-hidden">
+        <div className="relative w-full aspect-[16/9] bg-gray-200 overflow-hidden">
           <img
             src={transfer.imageUrl!}
             alt={transfer.title}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-contain sm:object-cover object-center"
             onError={() => setImgError(true)}
           />
         </div>
       ) : (
-        <div className="w-full h-48 bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center">
+        <div className="relative w-full aspect-[16/9] bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center">
           <svg
             className="w-16 h-16 text-blue-400"
             fill="currentColor"

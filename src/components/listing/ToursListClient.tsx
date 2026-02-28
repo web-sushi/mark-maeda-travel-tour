@@ -145,13 +145,13 @@ export default function ToursListClient({ tours }: ToursListClientProps) {
       {/* Single Unified Filter Bar */}
       <div className="bg-white border-b sticky top-16 z-30 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex flex-wrap gap-3 items-center">
+          <div className="grid grid-cols-2 gap-3 items-center sm:flex sm:flex-wrap">
             {/* Region Dropdown */}
             {regions.length > 0 && (
               <select
                 value={selectedRegion}
                 onChange={(e) => setSelectedRegion(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#E4005A] focus:border-transparent bg-white"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#E4005A] focus:border-transparent bg-white"
               >
                 <option value="all">All Regions</option>
                 {regions.map((region) => (
@@ -166,7 +166,7 @@ export default function ToursListClient({ tours }: ToursListClientProps) {
             <select
               value={selectedPriceSort}
               onChange={(e) => setSelectedPriceSort(e.target.value as PriceSortOption)}
-              className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#E4005A] focus:border-transparent bg-white"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#E4005A] focus:border-transparent bg-white"
             >
               <option value="default">Price</option>
               <option value="low_to_high">Price: Low → High</option>
@@ -174,11 +174,11 @@ export default function ToursListClient({ tours }: ToursListClientProps) {
             </select>
 
             {/* Sort Dropdown */}
-            <div className="ml-auto flex items-center gap-3">
+            <div className="col-span-2 flex items-center gap-3 sm:ml-auto">
               <select
                 value={selectedSort}
                 onChange={(e) => setSelectedSort(e.target.value as SortOption)}
-                className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#E4005A] focus:border-transparent bg-white"
+                className="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-[#E4005A] focus:border-transparent bg-white"
               >
                 <option value="popular">Sort: Popular</option>
                 <option value="newest">Sort: Newest</option>
