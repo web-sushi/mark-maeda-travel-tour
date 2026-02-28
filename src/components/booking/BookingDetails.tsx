@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import BookingItemCard from "./BookingItemCard";
 import type { Booking, BookingItem } from "@/types/booking";
 import type { SafeBookingEvent } from "@/types/tracking";
 
@@ -22,21 +23,29 @@ export default function BookingDetails({
       currency: "JPY",
     }).format(amount);
 
-  const formatDate = (dateString: string) =>
-    new Date(dateString).toLocaleDateString("en-US", {
+  const formatDate = (dateString?: string | null) => {
+    if (!dateString) return "—";
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "—";
+    return date.toLocaleDateString("en-US", {
       year: "numeric",
       month: "long",
       day: "numeric",
     });
+  };
 
-  const formatDateTime = (dateString: string) =>
-    new Date(dateString).toLocaleString("en-US", {
+  const formatDateTime = (dateString: string) => {
+    if (!dateString) return "—";
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "—";
+    return date.toLocaleString("en-US", {
       year: "numeric",
       month: "short",
       day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
     });
+  };
 
   const statusColors = {
     pending: "bg-yellow-100 text-yellow-800 border-yellow-200",
@@ -152,11 +161,15 @@ export default function BookingDetails({
           )}
           <div>
             <p className="text-sm text-gray-600">Passengers</p>
-            <p className="text-gray-900">{booking.passengers_count} passengers</p>
+            <p className="text-gray-900">
+              {booking.passengers_count ? `${booking.passengers_count} passengers` : "—"}
+            </p>
           </div>
           <div>
             <p className="text-sm text-gray-600">Large Suitcases</p>
-            <p className="text-gray-900">{booking.large_suitcases} suitcases</p>
+            <p className="text-gray-900">
+              {booking.large_suitcases ? `${booking.large_suitcases} suitcases` : "—"}
+            </p>
           </div>
         </div>
       </div>
@@ -164,24 +177,13 @@ export default function BookingDetails({
       {/* Items Breakdown */}
       {booking.items && booking.items.length > 0 && (
         <div className="bg-white rounded-lg border shadow-sm p-6">
-          <h3 className="text-xl font-semibold text-gray-900 mb-4">Items</h3>
-          <div className="space-y-3">
-            {booking.items.map((item: BookingItem, index: number) => {
-              const vehicles = formatVehicleSelection(item);
-              return (
-                <div key={index} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
-                  <div className="flex-1">
-                    <p className="font-medium text-gray-900">
-                      {item.title || `${item.type} (ID: ${item.id})`}
-                    </p>
-                    <p className="text-sm text-gray-600 capitalize">{item.type}</p>
-                    {vehicles && (
-                      <p className="text-sm text-gray-700 mt-1">🚐 {vehicles}</p>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+          <h3 className="text-xl font-semibold text-gray-900 mb-4">
+            Booking Items ({booking.items.length})
+          </h3>
+          <div className="space-y-4">
+            {booking.items.map((item: any, index: number) => (
+              <BookingItemCard key={item.id || index} item={item} index={index} />
+            ))}
           </div>
         </div>
       )}

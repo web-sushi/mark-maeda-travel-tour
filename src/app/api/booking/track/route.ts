@@ -104,6 +104,76 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Fetch booking_items for detailed item display and to compute travel dates if booking.travel_date is null
+    const { data: bookingItems } = await supabase
+      .from("booking_items")
+      .select("*")
+      .eq("booking_id", booking.id)
+      .order("travel_date", { ascending: true, nullsFirst: false });
+
+    console.log("[booking/track] Fetched booking:", {
+      bookingId: booking.id,
+      referenceCode: booking.reference_code,
+      travel_date: booking.travel_date,
+      booking_items_count: bookingItems?.length || 0,
+    });
+
+    // Compute fallback values from booking_items if booking-level fields are null
+    let computedTravelDate = booking.travel_date;
+    let computedPassengers = booking.passengers_count;
+    let computedLuggage = booking.large_suitcases;
+
+    if (bookingItems && bookingItems.length > 0) {
+      // Compute earliest travel date from items if booking.travel_date is null
+      if (!computedTravelDate) {
+        const itemDates = bookingItems
+          .map((item) => item.travel_date || item.start_date)
+          .filter((date): date is string => !!date)
+          .map((date) => new Date(date))
+          .filter((date) => !isNaN(date.getTime()));
+
+        if (itemDates.length > 0) {
+          const earliestDate = new Date(Math.min(...itemDates.map((d) => d.getTime())));
+          computedTravelDate = earliestDate.toISOString().split("T")[0];
+          console.log("[booking/track] Computed travel_date from items:", computedTravelDate);
+        }
+      }
+
+      // Compute total passengers if booking.passengers_count is null
+      if (!computedPassengers) {
+        const totalPassengers = bookingItems.reduce(
+          (sum, item) => sum + (item.passengers_count || 0),
+          0
+        );
+        if (totalPassengers > 0) {
+          computedPassengers = totalPassengers;
+          console.log("[booking/track] Computed passengers from items:", computedPassengers);
+        }
+      }
+
+      // Compute total luggage if booking.large_suitcases is null
+      if (!computedLuggage) {
+        const totalLuggage = bookingItems.reduce(
+          (sum, item) => sum + (item.large_suitcases || 0),
+          0
+        );
+        if (totalLuggage > 0) {
+          computedLuggage = totalLuggage;
+          console.log("[booking/track] Computed luggage from items:", computedLuggage);
+        }
+      }
+    }
+
+    // Build enhanced booking response with computed values
+    const enhancedBooking = {
+      ...booking,
+      travel_date: computedTravelDate,
+      passengers_count: computedPassengers,
+      large_suitcases: computedLuggage,
+      // Replace legacy items JSONB with proper booking_items array
+      items: bookingItems || [],
+    };
+
     // Fetch related events (last 20, most recent first)
     const { data: rawEvents, error: eventsError } = await supabase
       .from("booking_events")
@@ -129,7 +199,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       ok: true,
-      booking,
+      booking: enhancedBooking,
       events: safeEvents,
     });
   } catch (error) {
