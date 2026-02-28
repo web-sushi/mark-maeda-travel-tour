@@ -159,11 +159,42 @@ export async function POST(req: Request) {
   const appSettings = await getAppSettings();
   const emailToggles = appSettings?.email_toggles || {};
 
+  // Admin email: priority order
+  // 1. app_settings.admin_notification_email (new field)
+  // 2. app_settings.admin_notify_email (old field, backwards compat)
+  // 3. env.ADMIN_EMAIL (fallback)
   const adminEmail = 
-    process.env.ADMIN_NOTIFY_EMAIL || 
+    appSettings?.admin_notification_email ||
     appSettings?.admin_notify_email || 
+    process.env.ADMIN_EMAIL || 
     null;
+  
   const customerEmail = booking.customer_email;
+  const emailFrom = process.env.EMAIL_FROM || "";
+
+  console.log("[booking-created] Email configuration:", {
+    customerEmail,
+    adminEmail: adminEmail || "(not configured)",
+    emailFrom: emailFrom || "(not configured)",
+  });
+
+  // Safeguard: if admin email === from email, use fallback to avoid self-send filtering
+  let finalAdminEmail = adminEmail;
+  if (adminEmail && emailFrom && adminEmail.toLowerCase() === emailFrom.toLowerCase()) {
+    const fallbackAdminEmail = process.env.ADMIN_EMAIL;
+    if (fallbackAdminEmail && fallbackAdminEmail.toLowerCase() !== emailFrom.toLowerCase()) {
+      finalAdminEmail = fallbackAdminEmail;
+      console.warn("[booking-created] ⚠️  Admin email equals FROM email, using fallback:", {
+        original: adminEmail,
+        fallback: finalAdminEmail,
+      });
+    } else {
+      console.error("[booking-created] ❌ Admin email equals FROM email and no valid fallback available");
+      finalAdminEmail = null;
+    }
+  }
+
+  console.log("[booking-created] Final admin recipient:", finalAdminEmail || "(none)");
 
   // Insert booking_event BEFORE sending emails
   console.log("[booking-created] Inserting booking_event...");
@@ -174,7 +205,7 @@ export async function POST(req: Request) {
       booking_id: bookingId,
       event_type: "email_sent_booking_created",
       event_payload: {
-        sent_to: [customerEmail, adminEmail].filter(Boolean),
+        sent_to: [customerEmail, finalAdminEmail].filter(Boolean),
         mode: "booking-created",
       },
     });
@@ -227,23 +258,23 @@ export async function POST(req: Request) {
 
   // Send admin email (if enabled and email configured)
   if (emailToggles.booking_received_admin !== false) {
-    if (adminEmail) {
-      console.log("[booking-created] Sending admin email...");
+    if (finalAdminEmail) {
+      console.log("[booking-created] Sending admin email to:", finalAdminEmail);
       try {
         const adminTemplate = bookingReceivedAdmin(booking as Booking, items);
         await sendBrevoEmail({
-          to: adminEmail,
+          to: finalAdminEmail,
           subject: adminTemplate.subject,
           html: adminTemplate.html,
           text: adminTemplate.text,
         });
-        console.log("[booking-created] Admin email sent:", adminEmail);
+        console.log("[booking-created] ✅ Admin email sent successfully to:", finalAdminEmail);
       } catch (error) {
-        console.error("[booking-created] Admin email failed:", error);
+        console.error("[booking-created] ❌ Admin email failed:", error);
         emailError = true;
       }
     } else {
-      console.log("[booking-created] No admin email configured");
+      console.log("[booking-created] ⚠️  No admin email configured (skipping admin notification)");
     }
   } else {
     console.log("[booking-created] Admin email disabled in settings");
@@ -256,7 +287,7 @@ export async function POST(req: Request) {
     inserted: true,
     bookingId,
     customerEmail,
-    adminEmail: adminEmail || null,
+    adminEmail: finalAdminEmail || null,
     ...(emailError && { emailError: true }),
   });
 }

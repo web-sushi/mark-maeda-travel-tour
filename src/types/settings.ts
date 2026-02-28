@@ -16,7 +16,8 @@ export interface AppSettings {
   business_name?: string | null;
   support_email?: string | null;
   support_phone?: string | null;
-  admin_notify_email?: string | null;
+  admin_notify_email?: string | null; // Deprecated: use admin_notification_email
+  admin_notification_email?: string | null; // Primary admin email for notifications
   timezone: string;
   email_toggles: EmailToggles;
   updated_at: string;
@@ -28,6 +29,7 @@ export interface AppSettingsFormData {
   support_email: string;
   support_phone: string;
   admin_notify_email: string;
+  admin_notification_email: string; // New field
   timezone: string;
   email_toggles: EmailToggles;
 }

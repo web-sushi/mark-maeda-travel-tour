@@ -73,7 +73,8 @@ export async function POST(request: NextRequest) {
           business_name: body.business_name || null,
           support_email: body.support_email || null,
           support_phone: body.support_phone || null,
-          admin_notify_email: body.admin_notify_email || null,
+          admin_notify_email: body.admin_notify_email || null, // Keep for backwards compat
+          admin_notification_email: body.admin_notification_email || null, // New field
           timezone: body.timezone || "Asia/Tokyo",
           email_toggles: body.email_toggles || {},
         })
@@ -96,7 +97,8 @@ export async function POST(request: NextRequest) {
           business_name: body.business_name || null,
           support_email: body.support_email || null,
           support_phone: body.support_phone || null,
-          admin_notify_email: body.admin_notify_email || null,
+          admin_notify_email: body.admin_notify_email || null, // Keep for backwards compat
+          admin_notification_email: body.admin_notification_email || null, // New field
           timezone: body.timezone || "Asia/Tokyo",
           email_toggles: body.email_toggles || {},
         })

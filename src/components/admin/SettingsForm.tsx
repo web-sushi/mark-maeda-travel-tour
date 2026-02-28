@@ -14,6 +14,7 @@ export default function SettingsForm({ initialSettings }: SettingsFormProps) {
     support_email: initialSettings?.support_email || "",
     support_phone: initialSettings?.support_phone || "",
     admin_notify_email: initialSettings?.admin_notify_email || "",
+    admin_notification_email: initialSettings?.admin_notification_email || "",
     timezone: initialSettings?.timezone || "Asia/Tokyo",
     email_toggles: initialSettings?.email_toggles || {
       booking_received_customer: true,
@@ -140,7 +141,7 @@ export default function SettingsForm({ initialSettings }: SettingsFormProps) {
               htmlFor="admin_notify_email"
               className="block text-sm font-medium text-gray-700 mb-1"
             >
-              Admin Notification Email
+              Admin Notification Email (Deprecated)
             </label>
             <input
               type="email"
@@ -149,11 +150,35 @@ export default function SettingsForm({ initialSettings }: SettingsFormProps) {
               onChange={(e) =>
                 setFormData({ ...formData, admin_notify_email: e.target.value })
               }
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50"
               placeholder="admin@example.com"
+              disabled
             />
             <p className="text-xs text-gray-500 mt-1">
-              Fallback if ADMIN_NOTIFY_EMAIL env var is not set
+              ⚠️ Deprecated: Use "Admin Notification Email" field below instead
+            </p>
+          </div>
+
+          <div>
+            <label
+              htmlFor="admin_notification_email"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Admin Notification Email *
+            </label>
+            <input
+              type="email"
+              id="admin_notification_email"
+              value={formData.admin_notification_email}
+              onChange={(e) =>
+                setFormData({ ...formData, admin_notification_email: e.target.value })
+              }
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="notifications@example.com"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Primary email for booking notifications. Fallback: env ADMIN_EMAIL. 
+              <span className="font-semibold text-amber-600"> Must differ from sender email (EMAIL_FROM) to avoid filtering.</span>
             </p>
           </div>
 
