@@ -3,9 +3,9 @@ import { Metadata } from "next";
 
 // PLACEHOLDER BUSINESS DETAILS - Replace with actual information before going live
 const BUSINESS_NAME = "Mark Maeda Travel & Tour";
-const BUSINESS_EMAIL = "contact@markmaeda.com";
-const BUSINESS_PHONE = "+81 (0)XX-XXXX-XXXX";
-const BUSINESS_ADDRESS = "Tokyo, Japan";
+const BUSINESS_EMAIL = "contact@markmaedatravelandtour.com";
+const BUSINESS_PHONE = "+81 90-6375-6697";
+const BUSINESS_ADDRESS = "Kanagawa, Yokohama, Aobaku Utsukushigaoka 2-7-9 2F";
 const LAST_UPDATED = "February 2026";
 
 // PLACEHOLDER CANCELLATION POLICY - Adjust percentages and timeframes as needed
@@ -336,10 +336,16 @@ export default function TermsPage() {
             <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
               <p className="text-gray-900 font-semibold mb-2">{BUSINESS_NAME}</p>
               <p className="text-gray-700 mb-1">
-                <strong>Email:</strong> {BUSINESS_EMAIL}
+                <strong>Email:</strong>{" "}
+                <a href="mailto:contact@markmaedatravelandtour.com" className="text-blue-600 hover:text-blue-800 underline">
+                  {BUSINESS_EMAIL}
+                </a>
               </p>
               <p className="text-gray-700 mb-1">
-                <strong>Phone:</strong> {BUSINESS_PHONE}
+                <strong>Phone:</strong>{" "}
+                <a href="tel:+819063756697" className="text-blue-600 hover:text-blue-800 underline">
+                  {BUSINESS_PHONE}
+                </a>
               </p>
               <p className="text-gray-700">
                 <strong>Address:</strong> {BUSINESS_ADDRESS}
