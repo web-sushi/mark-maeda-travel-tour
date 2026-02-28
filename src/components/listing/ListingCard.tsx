@@ -53,7 +53,7 @@ export default function ListingCard({
   };
 
   return (
-    <Link href={href} className="block h-full">
+    <Link href={href} className="block w-full h-full">
       <article
         className={`h-full rounded-xl border border-gray-200 bg-white shadow-sm transition-all duration-200 overflow-hidden flex flex-col group cursor-pointer ${getVariantStyles()}`}
       >

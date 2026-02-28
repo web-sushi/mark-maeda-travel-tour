@@ -30,7 +30,7 @@ export default function TransferCard({ transfer }: TransferCardProps) {
   return (
     <Link
       href={`/transfers/${transfer.slug}`}
-      className="block h-full"
+      className="block w-full h-full"
     >
       <article className="h-full bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow flex flex-col">
         {/* cardMedia */}

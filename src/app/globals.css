@@ -36,6 +36,28 @@ body {
   scrollbar-width: none;  /* Firefox */
 }
 
+.carousel {
+  display: flex;
+  align-items: stretch;
+  gap: 16px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  padding: 6px 2px 14px;
+}
+
+.carouselItem {
+  scroll-snap-align: start;
+  flex: 0 0 auto;
+  width: clamp(260px, 72vw, 380px);
+  max-width: 420px;
+  display: flex;
+  height: 100%;
+}
+
 /* Reusable panel style with iOS-safe fallback (no heavy blur on Safari/iOS). */
 .glass {
   background: rgba(255, 255, 255, 0.92);

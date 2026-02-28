@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback, useRef, useEffect } from "react";
+import HorizontalCarousel from "@/components/ui/HorizontalCarousel";
 import TransferCard from "@/components/listing/TransferCard";
 import TransferFilterBar from "@/components/transfers/TransferFilterBar";
 import EmptyState from "@/components/listing/EmptyState";
@@ -133,15 +134,15 @@ export default function TransfersBrowser({
                   <p className="text-base sm:text-lg text-gray-600">
                     {hasActiveFilters
                       ? `${categoryTransfers.length} transfer${categoryTransfers.length !== 1 ? "s" : ""} found`
-                      : "Comfortable private transfers"}
+                      : "Swipe to explore comfortable private transfers"}
                   </p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 items-stretch">
+                <HorizontalCarousel>
                   {categoryTransfers.map((transfer) => (
                     <TransferCard key={transfer.id} transfer={transfer} />
                   ))}
-                </div>
+                </HorizontalCarousel>
               </section>
             );
           })}

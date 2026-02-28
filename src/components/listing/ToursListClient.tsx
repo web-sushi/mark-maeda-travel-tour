@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import HorizontalCarousel from "@/components/ui/HorizontalCarousel";
 import ListingCard from "@/components/listing/ListingCard";
 import EmptyState from "@/components/listing/EmptyState";
 
@@ -217,11 +218,11 @@ export default function ToursListClient({ tours }: ToursListClientProps) {
                   : `Tours in ${selectedRegion}`}
               </h2>
               <p className="text-base sm:text-lg text-gray-600">
-                Explore our handcrafted experiences
+                Swipe to explore our handcrafted experiences
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 items-stretch">
+            <HorizontalCarousel>
               {filteredTours.map((tour) => (
                 <ListingCard
                   key={tour.id}
@@ -234,7 +235,7 @@ export default function ToursListClient({ tours }: ToursListClientProps) {
                   variant="experience"
                 />
               ))}
-            </div>
+            </HorizontalCarousel>
           </div>
         ) : (
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
