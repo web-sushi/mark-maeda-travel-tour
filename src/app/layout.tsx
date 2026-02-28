@@ -18,7 +18,11 @@ export const metadata: Metadata = {
   title: "Mark Maeda Travel & Tour",
   description: "Private Japan tours, transfers, and curated travel experiences",
   icons: {
-    icon: "/images/company-logo.jpg",
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/favicon.svg", type: "image/svg+xml" }
+    ],
+    shortcut: "/favicon.ico",
   },
 };
 
