@@ -1,8 +1,6 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import HorizontalCardCarousel from "@/components/ui/HorizontalCardCarousel";
-import CarouselCardWrapper from "@/components/ui/CarouselCardWrapper";
 import ListingCard from "@/components/listing/ListingCard";
 import EmptyState from "@/components/listing/EmptyState";
 
@@ -143,7 +141,7 @@ export default function ToursListClient({ tours }: ToursListClientProps) {
   return (
     <>
       {/* Single Unified Filter Bar */}
-      <div className="bg-white border-b sticky top-16 z-30 shadow-sm">
+      <div className="glass border-b sticky top-16 z-30 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="grid grid-cols-2 gap-3 items-center sm:flex sm:flex-wrap">
             {/* Region Dropdown */}
@@ -211,30 +209,33 @@ export default function ToursListClient({ tours }: ToursListClientProps) {
       {/* Tours Display */}
       <div className="py-12 mt-8">
         {filteredTours.length > 0 ? (
-          <HorizontalCardCarousel
-            title={
-              selectedRegion === "all"
-                ? "Available Tours"
-                : `Tours in ${selectedRegion}`
-            }
-            subtitle="Swipe to explore our handcrafted experiences"
-          >
-            {filteredTours.map((tour) => {
-              return (
-                <CarouselCardWrapper key={tour.id}>
-                  <ListingCard
-                    title={tour.title}
-                    imageUrl={tour.imageUrl}
-                    price={tour.price}
-                    region={tour.region}
-                    duration_hours={tour.duration_hours}
-                    href={`/tours/${tour.slug}`}
-                    variant="experience"
-                  />
-                </CarouselCardWrapper>
-              );
-            })}
-          </HorizontalCardCarousel>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="mb-6">
+              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
+                {selectedRegion === "all"
+                  ? "Available Tours"
+                  : `Tours in ${selectedRegion}`}
+              </h2>
+              <p className="text-base sm:text-lg text-gray-600">
+                Explore our handcrafted experiences
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 items-stretch">
+              {filteredTours.map((tour) => (
+                <ListingCard
+                  key={tour.id}
+                  title={tour.title}
+                  imageUrl={tour.imageUrl}
+                  price={tour.price}
+                  region={tour.region}
+                  duration_hours={tour.duration_hours}
+                  href={`/tours/${tour.slug}`}
+                  variant="experience"
+                />
+              ))}
+            </div>
+          </div>
         ) : (
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <EmptyState

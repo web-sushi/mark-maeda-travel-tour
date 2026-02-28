@@ -169,7 +169,7 @@ export default function TransferFilterBar({
   const showToDropdown = toFocused && toSuggestions.length > 0;
 
   return (
-    <div className="bg-white border-b">
+    <div className="glass border-b relative z-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-end">
           {/* From Input */}

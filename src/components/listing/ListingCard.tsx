@@ -53,17 +53,17 @@ export default function ListingCard({
   };
 
   return (
-    <Link href={href}>
-      <div
-        className={`rounded-lg border border-gray-200 bg-white shadow-sm transition-all duration-200 overflow-hidden flex flex-col group cursor-pointer ${getVariantStyles()}`}
+    <Link href={href} className="block h-full">
+      <article
+        className={`h-full rounded-xl border border-gray-200 bg-white shadow-sm transition-all duration-200 overflow-hidden flex flex-col group cursor-pointer ${getVariantStyles()}`}
       >
-        {/* Keep image area stable and iPhone-safe */}
+        {/* cardMedia */}
         <div className="relative w-full aspect-[16/9] overflow-hidden bg-gradient-to-br from-gray-200 via-gray-100 to-gray-200">
           {imageUrl ? (
             <img
               src={imageUrl}
               alt={title}
-              className="w-full h-full object-contain sm:object-cover object-center group-hover:scale-105 transition-transform duration-300"
+              className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
@@ -91,7 +91,7 @@ export default function ListingCard({
           )}
         </div>
 
-        {/* Content Section */}
+        {/* cardBody */}
         <div className="p-4 flex-1 flex flex-col">
           {/* Title */}
           <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2 group-hover:text-[#E4005A] transition-colors">
@@ -140,7 +140,7 @@ export default function ListingCard({
             </div>
           )}
 
-          {/* Price & CTA - Pushed to bottom */}
+          {/* cardFooter */}
           <div className="mt-auto pt-3 border-t border-gray-100">
             <div className="flex items-center justify-between">
               <div>
@@ -155,7 +155,7 @@ export default function ListingCard({
             </div>
           </div>
         </div>
-      </div>
+      </article>
     </Link>
   );
 }
