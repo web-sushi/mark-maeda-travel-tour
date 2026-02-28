@@ -33,7 +33,7 @@ export default async function ReviewsPage() {
   const morePhotos = (galleryItems || []).filter((item) => !item.is_featured);
 
   return (
-    <div className="bg-[#F8F9FC] min-h-screen">
+    <div className="bg-[#F8F9FC] min-h-[100svh]">
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-[#1B0C3F] to-[#2D1A5F] text-white py-16 sm:py-20">
         <Container>

@@ -27,7 +27,7 @@ export default async function SearchPage({ searchParams }: SearchParams) {
   const packageResults = results.filter((r) => r.type === "package");
 
   return (
-    <div className="bg-[#F8F9FC] min-h-screen">
+    <div className="bg-[#F8F9FC] min-h-[100svh]">
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-[#1B0C3F] to-[#2D1A5F] text-white py-12 sm:py-16">
         <Container>

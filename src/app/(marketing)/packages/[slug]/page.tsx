@@ -119,7 +119,7 @@ export default async function PackageDetailPage({
   const transferCount = items.filter((item) => item.type === "transfer").length;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-[100svh] bg-gray-50">
       <Container className="py-8">
         <div className="max-w-6xl mx-auto">
           {/* Hero Section */}
