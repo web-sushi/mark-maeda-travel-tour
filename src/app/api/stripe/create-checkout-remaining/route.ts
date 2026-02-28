@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
 
     const { data: booking, error: bookingError } = await supabase
       .from("bookings")
-      .select("*")
+      .select("*, public_view_token")
       .eq("id", bookingId)
       .single();
 
@@ -60,6 +60,7 @@ export async function POST(request: NextRequest) {
       referenceCode: booking.reference_code,
       remainingAmount: booking.remaining_amount,
       bookingStatus: booking.booking_status,
+      hasToken: !!booking.public_view_token,
     });
 
     // Validate remaining amount > 0
@@ -96,6 +97,21 @@ export async function POST(request: NextRequest) {
       referenceCode: booking.reference_code,
     });
 
+    // Build success and cancel URLs with access token
+    const token = booking.public_view_token;
+    const successUrl = token
+      ? `${siteUrl}/booking/success?bookingId=${booking.id}&t=${token}`
+      : `${siteUrl}/booking/success?bookingId=${booking.id}`;
+    const cancelUrl = token
+      ? `${siteUrl}/booking/track?bookingId=${booking.id}&t=${token}`
+      : `${siteUrl}/booking/track?bookingId=${booking.id}`;
+
+    console.log("[Stripe create-checkout-remaining] URLs:", {
+      successUrl,
+      cancelUrl,
+      hasToken: !!token,
+    });
+
     // Create Stripe Checkout Session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
@@ -124,8 +140,8 @@ export async function POST(request: NextRequest) {
           pay_type: "remaining",
         },
       },
-      success_url: `${siteUrl}/booking/success?bookingId=${booking.id}`,
-      cancel_url: `${siteUrl}/booking/track?bookingId=${booking.id}`,
+      success_url: successUrl,
+      cancel_url: cancelUrl,
     });
 
     console.log("[Stripe create-checkout-remaining] Session created successfully:", {

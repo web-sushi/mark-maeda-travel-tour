@@ -44,26 +44,30 @@ export default function SuccessPageContent() {
       return;
     }
 
-    if (!token) {
-      setError("No access token provided. Please use the link from your email.");
-      setLoading(false);
-      return;
-    }
-
+    // Allow fetch even without token if we might be authenticated
+    // The API will check if user is owner or admin
     fetchBooking();
   }, [bookingId, token]);
 
   const fetchBooking = async () => {
-    if (!bookingId || !token) return;
+    if (!bookingId) return;
 
     try {
-      const response = await fetch(
-        `/api/bookings/public?bookingId=${bookingId}&t=${token}`
-      );
+      // Build URL with token if available
+      const url = token
+        ? `/api/bookings/public?bookingId=${bookingId}&t=${token}`
+        : `/api/bookings/public?bookingId=${bookingId}&t=fallback`;
+
+      const response = await fetch(url);
 
       if (!response.ok) {
         if (response.status === 404) {
-          setError("Booking not found or invalid access token");
+          // Show more helpful error message
+          if (!token) {
+            setError("No access token provided. Please use the link from your email or log in to view your booking.");
+          } else {
+            setError("Booking not found or invalid access token");
+          }
         } else {
           setError("Failed to load booking details");
         }
