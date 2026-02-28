@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getStripe } from "@/lib/stripe/stripe";
 import { createClient } from "@supabase/supabase-js";
+import Stripe from "stripe";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -12,11 +13,12 @@ const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
  * Uses service role to fetch booking (bypasses RLS for guest checkout)
  * 
  * Input: { bookingId, publicViewToken, depositChoice }
- * Output: { ok: true, url: string } or { ok: false, error: string }
+ * Output: { ok: true, url: string } or { ok: false, error: string, message: string, type?: string, code?: string, raw?: any }
  */
 export async function POST(request: Request) {
+  const stripe = getStripe();
+  
   try {
-    const stripe = getStripe();
     const body = await request.json();
     const { bookingId, publicViewToken, depositChoice } = body;
 
@@ -30,7 +32,11 @@ export async function POST(request: Request) {
     if (!bookingId) {
       console.error("[Stripe create-checkout] Missing bookingId");
       return NextResponse.json(
-        { ok: false, error: "bookingId is required" },
+        { 
+          ok: false, 
+          error: "missing_booking_id",
+          message: "Booking ID is required"
+        },
         { status: 400 }
       );
     }
@@ -38,7 +44,11 @@ export async function POST(request: Request) {
     if (!publicViewToken) {
       console.error("[Stripe create-checkout] Missing publicViewToken");
       return NextResponse.json(
-        { ok: false, error: "publicViewToken is required" },
+        { 
+          ok: false, 
+          error: "missing_token",
+          message: "Public view token is required"
+        },
         { status: 400 }
       );
     }
@@ -46,7 +56,11 @@ export async function POST(request: Request) {
     if (!depositChoice || ![25, 50, 100].includes(depositChoice)) {
       console.error("[Stripe create-checkout] Invalid depositChoice:", depositChoice);
       return NextResponse.json(
-        { ok: false, error: "depositChoice must be 25, 50, or 100" },
+        { 
+          ok: false, 
+          error: "invalid_deposit_choice",
+          message: "Deposit choice must be 25%, 50%, or 100%"
+        },
         { status: 400 }
       );
     }
@@ -71,7 +85,11 @@ export async function POST(request: Request) {
         error: bookingError?.message,
       });
       return NextResponse.json(
-        { ok: false, error: "booking_not_found" },
+        { 
+          ok: false, 
+          error: "booking_not_found",
+          message: "Booking not found. Please verify your booking reference."
+        },
         { status: 404 }
       );
     }
@@ -90,15 +108,36 @@ export async function POST(request: Request) {
     if (amountToCharge <= 0) {
       console.error("[Stripe create-checkout] Invalid amount:", amountToCharge);
       return NextResponse.json(
-        { ok: false, error: "Invalid deposit amount calculated" },
+        { 
+          ok: false, 
+          error: "invalid_amount",
+          message: "Invalid deposit amount calculated. Please contact support."
+        },
         { status: 400 }
       );
     }
 
+    // Build URLs
+    const successUrl = `${siteUrl}/booking/success?bookingId=${booking.id}&t=${publicViewToken}`;
+    const cancelUrl = `${siteUrl}/booking/success?bookingId=${booking.id}&t=${publicViewToken}`;
+
+    // Stripe environment mode
+    const stripeMode = process.env.STRIPE_SECRET_KEY?.startsWith("sk_live") ? "live" : "test";
+
     console.log("[Stripe create-checkout] Creating Stripe session:", {
+      mode: stripeMode,
       amount: amountToCharge,
-      depositChoice,
+      currency: "jpy",
+      depositChoice: `${depositChoice}%`,
       referenceCode: booking.reference_code,
+      payment_method_types: ["card"],
+      success_url: successUrl,
+      cancel_url: cancelUrl,
+      metadata: {
+        booking_id: booking.id,
+        pay_type: "deposit",
+        pay_percent: depositChoice,
+      },
     });
 
     // Create Stripe Checkout Session
@@ -135,24 +174,68 @@ export async function POST(request: Request) {
           paymentType: "deposit",
         },
       },
-      success_url: `${siteUrl}/booking/success?bookingId=${booking.id}&t=${publicViewToken}`,
-      cancel_url: `${siteUrl}/booking/success?bookingId=${booking.id}&t=${publicViewToken}`,
+      success_url: successUrl,
+      cancel_url: cancelUrl,
     });
 
-    console.log("[Stripe create-checkout] Session created successfully:", {
+    console.log("[Stripe create-checkout] ✅ Session created successfully:", {
       sessionId: session.id,
       bookingId: booking.id,
       depositChoice,
       amount: amountToCharge,
       url: session.url,
+      mode: stripeMode,
     });
 
     return NextResponse.json({ ok: true, url: session.url });
   } catch (error) {
-    console.error("[Stripe create-checkout] Unexpected error:", error);
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    console.error("[Stripe create-checkout] ❌ Error:", error);
+
+    // Handle Stripe-specific errors
+    if (error instanceof Stripe.errors.StripeError) {
+      const stripeError = error as Stripe.errors.StripeError;
+      
+      console.error("[Stripe create-checkout] Stripe error details:", {
+        type: stripeError.type,
+        code: stripeError.code,
+        message: stripeError.message,
+        statusCode: stripeError.statusCode,
+        requestId: stripeError.requestId,
+      });
+
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "stripe_error",
+          message: stripeError.message || "Payment processing error. Please try again.",
+          type: stripeError.type,
+          code: stripeError.code,
+          raw: {
+            statusCode: stripeError.statusCode,
+            requestId: stripeError.requestId,
+          },
+        },
+        { status: stripeError.statusCode || 500 }
+      );
+    }
+
+    // Handle generic errors
+    const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+    
+    console.error("[Stripe create-checkout] Generic error:", {
+      message: errorMessage,
+      stack: error instanceof Error ? error.stack : undefined,
+    });
+
     return NextResponse.json(
-      { ok: false, error: "Failed to create checkout session", details: errorMessage },
+      {
+        ok: false,
+        error: "checkout_creation_failed",
+        message: "Failed to create payment session. Please try again or contact support.",
+        raw: {
+          details: errorMessage,
+        },
+      },
       { status: 500 }
     );
   }

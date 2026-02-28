@@ -280,11 +280,20 @@ export default function CheckoutPage() {
       const stripeData = await stripeResponse.json();
 
       if (!stripeResponse.ok || !stripeData.ok) {
-        throw new Error(stripeData.error || "Failed to create payment session");
+        // Display the detailed error message from the API
+        const errorMessage = stripeData.message || stripeData.error || "Failed to create payment session";
+        console.error("[checkout] Stripe checkout error:", {
+          status: stripeResponse.status,
+          error: stripeData.error,
+          message: stripeData.message,
+          type: stripeData.type,
+          code: stripeData.code,
+        });
+        throw new Error(errorMessage);
       }
 
       if (!stripeData.url) {
-        throw new Error("No checkout URL received from Stripe");
+        throw new Error("No checkout URL received from Stripe. Please try again.");
       }
 
       // Clear cart before redirect
@@ -293,7 +302,8 @@ export default function CheckoutPage() {
       // Redirect to Stripe Checkout
       window.location.href = stripeData.url;
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create booking");
+      console.error("[checkout] Error during submission:", err);
+      setError(err instanceof Error ? err.message : "Failed to create booking. Please try again.");
       setLoading(false);
     }
   };

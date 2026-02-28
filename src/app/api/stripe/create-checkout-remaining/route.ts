@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getStripe } from "@/lib/stripe/stripe";
 import { createClient } from "@supabase/supabase-js";
+import Stripe from "stripe";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -12,11 +13,12 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
  * Uses service role to fetch booking (bypasses RLS)
  * 
  * Input: { bookingId }
- * Output: { ok: true, url: string } or { ok: false, error: string }
+ * Output: { ok: true, url: string } or { ok: false, error: string, message: string, type?: string, code?: string, raw?: any }
  */
 export async function POST(request: NextRequest) {
+  const stripe = getStripe();
+  
   try {
-    const stripe = getStripe();
     const body = await request.json();
     const { bookingId } = body;
 
@@ -26,7 +28,11 @@ export async function POST(request: NextRequest) {
     if (!bookingId) {
       console.error("[Stripe create-checkout-remaining] Missing bookingId");
       return NextResponse.json(
-        { ok: false, error: "bookingId is required" },
+        { 
+          ok: false, 
+          error: "missing_booking_id",
+          message: "Booking ID is required"
+        },
         { status: 400 }
       );
     }
@@ -50,7 +56,11 @@ export async function POST(request: NextRequest) {
         error: bookingError?.message,
       });
       return NextResponse.json(
-        { ok: false, error: "booking_not_found" },
+        { 
+          ok: false, 
+          error: "booking_not_found",
+          message: "Booking not found. Please verify your booking reference."
+        },
         { status: 404 }
       );
     }
@@ -67,7 +77,11 @@ export async function POST(request: NextRequest) {
     if (booking.remaining_amount <= 0) {
       console.error("[Stripe create-checkout-remaining] No remaining balance");
       return NextResponse.json(
-        { ok: false, error: "No remaining balance to pay" },
+        { 
+          ok: false, 
+          error: "no_balance",
+          message: "No remaining balance to pay. Your booking is already paid in full."
+        },
         { status: 400 }
       );
     }
@@ -76,7 +90,11 @@ export async function POST(request: NextRequest) {
     if (booking.booking_status === "cancelled") {
       console.error("[Stripe create-checkout-remaining] Booking cancelled");
       return NextResponse.json(
-        { ok: false, error: "Cannot pay for cancelled booking" },
+        { 
+          ok: false, 
+          error: "booking_cancelled",
+          message: "Cannot process payment for a cancelled booking."
+        },
         { status: 400 }
       );
     }
@@ -87,15 +105,14 @@ export async function POST(request: NextRequest) {
     if (amountToCharge <= 0) {
       console.error("[Stripe create-checkout-remaining] Invalid amount:", amountToCharge);
       return NextResponse.json(
-        { ok: false, error: "Invalid remaining amount" },
+        { 
+          ok: false, 
+          error: "invalid_amount",
+          message: "Invalid remaining amount calculated. Please contact support."
+        },
         { status: 400 }
       );
     }
-
-    console.log("[Stripe create-checkout-remaining] Creating Stripe session:", {
-      amount: amountToCharge,
-      referenceCode: booking.reference_code,
-    });
 
     // Build success and cancel URLs with access token
     const token = booking.public_view_token;
@@ -106,10 +123,22 @@ export async function POST(request: NextRequest) {
       ? `${siteUrl}/booking/track?bookingId=${booking.id}&t=${token}`
       : `${siteUrl}/booking/track?bookingId=${booking.id}`;
 
-    console.log("[Stripe create-checkout-remaining] URLs:", {
-      successUrl,
-      cancelUrl,
+    // Stripe environment mode
+    const stripeMode = process.env.STRIPE_SECRET_KEY?.startsWith("sk_live") ? "live" : "test";
+
+    console.log("[Stripe create-checkout-remaining] Creating Stripe session:", {
+      mode: stripeMode,
+      amount: amountToCharge,
+      currency: "jpy",
+      referenceCode: booking.reference_code,
+      payment_method_types: ["card"],
+      success_url: successUrl,
+      cancel_url: cancelUrl,
       hasToken: !!token,
+      metadata: {
+        booking_id: booking.id,
+        pay_type: "remaining",
+      },
     });
 
     // Create Stripe Checkout Session
@@ -148,20 +177,64 @@ export async function POST(request: NextRequest) {
       cancel_url: cancelUrl,
     });
 
-    console.log("[Stripe create-checkout-remaining] Session created successfully:", {
+    console.log("[Stripe create-checkout-remaining] ✅ Session created successfully:", {
       sessionId: session.id,
       bookingId: booking.id,
       amount: amountToCharge,
       referenceCode: booking.reference_code,
       url: session.url,
+      mode: stripeMode,
     });
 
     return NextResponse.json({ ok: true, url: session.url });
   } catch (error) {
-    console.error("[Stripe create-checkout-remaining] Unexpected error:", error);
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    console.error("[Stripe create-checkout-remaining] ❌ Error:", error);
+
+    // Handle Stripe-specific errors
+    if (error instanceof Stripe.errors.StripeError) {
+      const stripeError = error as Stripe.errors.StripeError;
+      
+      console.error("[Stripe create-checkout-remaining] Stripe error details:", {
+        type: stripeError.type,
+        code: stripeError.code,
+        message: stripeError.message,
+        statusCode: stripeError.statusCode,
+        requestId: stripeError.requestId,
+      });
+
+      return NextResponse.json(
+        {
+          ok: false,
+          error: "stripe_error",
+          message: stripeError.message || "Payment processing error. Please try again.",
+          type: stripeError.type,
+          code: stripeError.code,
+          raw: {
+            statusCode: stripeError.statusCode,
+            requestId: stripeError.requestId,
+          },
+        },
+        { status: stripeError.statusCode || 500 }
+      );
+    }
+
+    // Handle generic errors
+    const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+    
+    console.error("[Stripe create-checkout-remaining] Generic error:", {
+      message: errorMessage,
+      stack: error instanceof Error ? error.stack : undefined,
+    });
+
     return NextResponse.json(
-      { ok: false, error: "Failed to create checkout session", details: errorMessage },
+      {
+        ok: false,
+        error: "checkout_creation_failed",
+        message: "Failed to create payment session. Please try again or contact support.",
+        raw: {
+          details: errorMessage,
+        },
+      },
       { status: 500 }
     );
   }

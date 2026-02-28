@@ -62,20 +62,29 @@ export default function BookingCard({ booking }: BookingCardProps) {
         body: JSON.stringify({ bookingId: booking.id }),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to create payment session");
+      const data = await response.json();
+
+      if (!response.ok || !data.ok) {
+        // Display the detailed error message from the API
+        const errorMessage = data.message || data.error || "Failed to create payment session";
+        console.error("[BookingCard] Payment error:", {
+          status: response.status,
+          error: data.error,
+          message: data.message,
+          type: data.type,
+          code: data.code,
+        });
+        throw new Error(errorMessage);
       }
 
-      const { url } = await response.json();
-
-      if (!url) {
-        throw new Error("No checkout URL received");
+      if (!data.url) {
+        throw new Error("No checkout URL received. Please try again.");
       }
 
-      window.location.href = url;
+      window.location.href = data.url;
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to initiate payment");
+      console.error("[BookingCard] Error initiating payment:", err);
+      alert(err instanceof Error ? err.message : "Failed to initiate payment. Please try again.");
       setPaymentLoading(false);
     }
   };
