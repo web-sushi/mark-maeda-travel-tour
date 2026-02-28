@@ -58,12 +58,12 @@ export default function ListingCard({
         className={`rounded-lg border border-gray-200 bg-white shadow-sm transition-all duration-200 overflow-hidden h-full flex flex-col group cursor-pointer ${getVariantStyles()}`}
       >
         {/* Image Section - Fixed Height */}
-        <div className="w-full h-48 relative bg-gradient-to-br from-gray-200 via-gray-100 to-gray-200 overflow-hidden">
+        <div className="w-full aspect-[16/9] relative bg-gradient-to-br from-gray-200 via-gray-100 to-gray-200 overflow-hidden">
           {imageUrl ? (
             <img
               src={imageUrl}
               alt={title}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center">

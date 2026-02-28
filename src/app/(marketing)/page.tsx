@@ -493,7 +493,7 @@ export default async function HomePage() {
                 return (
                   <div
                     key={review.review_id}
-                    className="bg-white/10 backdrop-blur-sm rounded-xl p-8 border border-white/20 hover:bg-white/15 transition-all"
+                    className="bg-white/90 rounded-xl p-8 border border-white/30 hover:bg-white/95 transition-all"
                   >
                     {/* Star Rating */}
                     <div className="flex mb-4">
@@ -542,7 +542,7 @@ export default async function HomePage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {/* Fallback placeholder testimonials */}
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl p-8 border border-white/20">
+              <div className="bg-white/90 rounded-xl p-8 border border-white/30">
                 <div className="flex mb-4">
                   {[...Array(5)].map((_, i) => (
                     <svg key={i} className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">

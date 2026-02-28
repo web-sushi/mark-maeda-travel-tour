@@ -29,15 +29,15 @@ export default function TransferCard({ transfer }: TransferCardProps) {
   return (
     <div className="rounded-lg border bg-white shadow-sm hover:shadow-md transition-shadow overflow-hidden">
       {coverUrl ? (
-        <div className="w-full h-48 relative bg-gray-200">
+        <div className="w-full aspect-[16/9] relative bg-gray-200">
           <img
             src={coverUrl}
             alt={transfer.title}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover object-center"
           />
         </div>
       ) : (
-        <div className="w-full h-48 bg-gray-200 flex items-center justify-center">
+        <div className="w-full aspect-[16/9] bg-gradient-to-br from-gray-200 via-gray-100 to-gray-200 flex items-center justify-center">
           <span className="text-gray-400">No image</span>
         </div>
       )}
