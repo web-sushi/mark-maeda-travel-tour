@@ -303,10 +303,10 @@ export default async function HomePage() {
                 Complete travel packages combining tours and transfers. Perfect for hassle-free travel planning.
               </p>
               <Link 
-                href="/packages"
+                href="/transfers"
                 className="inline-flex items-center text-[#E4005A] font-semibold hover:text-[#C4004A] transition-colors group"
               >
-                View Packages
+                View Transfers
                 <svg className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
                 </svg>
@@ -626,10 +626,10 @@ export default async function HomePage() {
               Browse All Tours
             </Link>
             <Link 
-              href="/packages"
+              href="/transfers"
               className="inline-flex items-center justify-center px-8 py-4 text-base font-semibold rounded-lg bg-[#1B0C3F] text-white hover:bg-[#2D1A5F] transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
             >
-              View Packages
+              View Transfers
             </Link>
           </div>
         </div>
