@@ -163,7 +163,81 @@ async function handleCheckoutCompleted(
   // For delayed payment methods (konbini, bank_transfer), don't mark as paid yet
   // Wait for async_payment_succeeded event
   if (session.payment_status === "unpaid") {
-    console.log(`[Stripe Webhook] ⏳ Payment status is 'unpaid' (delayed payment), waiting for async_payment_succeeded`);
+    console.log(`[Stripe Webhook] ⏳ Payment status is 'unpaid' (delayed payment), sending pending notification`);
+    
+    // Fetch booking for email
+    const { data: booking } = await supabase
+      .from("bookings")
+      .select("*")
+      .eq("id", bookingId)
+      .single();
+
+    if (booking) {
+      const paymentAmount = session.amount_total || 0;
+      const paymentMethodType = session.payment_method_types?.[0] || "delayed";
+      
+      // Fetch booking_items
+      const { data: bookingItems } = await supabase
+        .from("booking_items")
+        .select("*")
+        .eq("booking_id", bookingId)
+        .order("created_at", { ascending: true });
+
+      const items = bookingItems || [];
+
+      // Send pending payment emails
+      try {
+        const { sendBrevoEmail } = await import("@/lib/email/brevo");
+        const { paymentPendingCustomer, paymentPendingAdmin } = await import("@/lib/email/templates");
+
+        // Customer email
+        const customerEmail = paymentPendingCustomer(booking, items, paymentAmount, paymentMethodType);
+        await sendBrevoEmail({
+          to: booking.customer_email,
+          subject: customerEmail.subject,
+          html: customerEmail.html,
+          text: customerEmail.text,
+        });
+
+        // Admin email
+        const adminEmail = paymentPendingAdmin(booking, items, paymentAmount, paymentMethodType);
+        await sendBrevoEmail({
+          to: process.env.ADMIN_EMAIL || booking.customer_email,
+          subject: adminEmail.subject,
+          html: adminEmail.html,
+          text: adminEmail.text,
+        });
+
+        // Record email events
+        await supabase.from("booking_events").insert([
+          {
+            booking_id: bookingId,
+            event_type: "email_sent_payment_pending_customer",
+            event_payload: {
+              session_id: session.id,
+              payment_type: paymentType,
+              payment_method: paymentMethodType,
+              amount: paymentAmount,
+            },
+          },
+          {
+            booking_id: bookingId,
+            event_type: "email_sent_payment_pending_admin",
+            event_payload: {
+              session_id: session.id,
+              payment_type: paymentType,
+              payment_method: paymentMethodType,
+              amount: paymentAmount,
+            },
+          },
+        ]);
+
+        console.log(`[Stripe Webhook] 📧 Payment pending emails sent for booking ${bookingId}`);
+      } catch (emailError) {
+        console.error("[Stripe Webhook] ⚠️  Failed to send pending payment emails:", emailError);
+      }
+    }
+
     await recordWebhookEvent(supabase, eventId, "checkout.session.completed", bookingId, {
       session_id: session.id,
       payment_status: session.payment_status,
@@ -271,6 +345,68 @@ async function handleAsyncPaymentFailed(
       reason: "Async payment failed",
     },
   });
+
+  // Send payment failed emails
+  try {
+    const paymentAmount = session.amount_total || 0;
+    const paymentMethodType = session.payment_method_types?.[0] || "delayed";
+
+    // Fetch booking_items
+    const { data: bookingItems } = await supabase
+      .from("booking_items")
+      .select("*")
+      .eq("booking_id", bookingId)
+      .order("created_at", { ascending: true });
+
+    const items = bookingItems || [];
+
+    const { sendBrevoEmail } = await import("@/lib/email/brevo");
+    const { paymentFailedCustomer, paymentFailedAdmin } = await import("@/lib/email/templates");
+
+    // Customer email
+    const customerEmail = paymentFailedCustomer(booking, items, paymentAmount, paymentMethodType);
+    await sendBrevoEmail({
+      to: booking.customer_email,
+      subject: customerEmail.subject,
+      html: customerEmail.html,
+      text: customerEmail.text,
+    });
+
+    // Admin email
+    const adminEmail = paymentFailedAdmin(booking, items, paymentAmount, paymentMethodType);
+    await sendBrevoEmail({
+      to: process.env.ADMIN_EMAIL || booking.customer_email,
+      subject: adminEmail.subject,
+      html: adminEmail.html,
+      text: adminEmail.text,
+    });
+
+    // Record email events
+    await supabase.from("booking_events").insert([
+      {
+        booking_id: bookingId,
+        event_type: "email_sent_payment_failed_customer",
+        event_payload: {
+          session_id: session.id,
+          payment_type: paymentType,
+          amount: paymentAmount,
+        },
+      },
+      {
+        booking_id: bookingId,
+        event_type: "email_sent_payment_failed_admin",
+        event_payload: {
+          session_id: session.id,
+          payment_type: paymentType,
+          amount: paymentAmount,
+        },
+      },
+    ]);
+
+    console.log(`[Stripe Webhook] 📧 Payment failed emails sent to customer and admin`);
+  } catch (emailError) {
+    console.error("[Stripe Webhook] ⚠️  Failed to send payment failed emails:", emailError);
+  }
 
   console.log(`[Stripe Webhook] ✅ Payment failure recorded for booking ${bookingId}`);
 }
@@ -524,11 +660,21 @@ async function processPayment(
       .single();
 
     if (!emailSentEvent) {
+      // Fetch booking_items
+      const { data: bookingItems } = await supabase
+        .from("booking_items")
+        .select("*")
+        .eq("booking_id", bookingId)
+        .order("created_at", { ascending: true });
+
+      const items = bookingItems || [];
+
       const { sendBrevoEmail } = await import("@/lib/email/brevo");
       const { paymentReceivedCustomer } = await import("@/lib/email/templates");
 
       const { subject, html, text } = paymentReceivedCustomer(
         booking,
+        items,
         paidAmount,
         newRemainingAmount
       );

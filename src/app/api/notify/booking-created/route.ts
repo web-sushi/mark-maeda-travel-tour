@@ -99,6 +99,23 @@ export async function POST(req: Request) {
     customer_email: booking.customer_email,
   });
 
+  // Fetch booking_items for the booking
+  console.log("[booking-created] Fetching booking_items...");
+  
+  const { data: bookingItems, error: itemsError } = await supabaseAdmin
+    .from("booking_items")
+    .select("*")
+    .eq("booking_id", bookingId)
+    .order("created_at", { ascending: true });
+
+  if (itemsError) {
+    console.error("[booking-created] Error fetching booking_items:", itemsError);
+    // Continue without items rather than failing completely
+  }
+
+  const items = bookingItems || [];
+  console.log("[booking-created] Booking items found:", items.length);
+
   // Idempotency check
   console.log("[booking-created] Checking for existing event...");
 
@@ -192,7 +209,7 @@ export async function POST(req: Request) {
   if (emailToggles.booking_received_customer !== false) {
     console.log("[booking-created] Sending customer email...");
     try {
-      const customerTemplate = bookingReceivedCustomer(booking as Booking);
+      const customerTemplate = bookingReceivedCustomer(booking as Booking, items);
       await sendBrevoEmail({
         to: customerEmail,
         subject: customerTemplate.subject,
@@ -213,7 +230,7 @@ export async function POST(req: Request) {
     if (adminEmail) {
       console.log("[booking-created] Sending admin email...");
       try {
-        const adminTemplate = bookingReceivedAdmin(booking as Booking);
+        const adminTemplate = bookingReceivedAdmin(booking as Booking, items);
         await sendBrevoEmail({
           to: adminEmail,
           subject: adminTemplate.subject,
