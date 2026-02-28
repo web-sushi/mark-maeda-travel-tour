@@ -3,13 +3,15 @@
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase/client";
+import { formatBookingItemDate } from "@/lib/admin/date-formatters";
+import { BookingItemRow } from "@/types/booking";
 
 interface Booking {
   id: string;
   reference_code: string;
   customer_name: string;
   customer_email: string;
-  travel_date: string;
+  travel_date: string | null;
   booking_status: string;
   payment_status: string;
   total_amount: number;
@@ -17,6 +19,7 @@ interface Booking {
   remaining_amount: number;
   items: any;
   created_at: string;
+  booking_items?: BookingItemRow[];
 }
 
 interface ItemTitlesMap {
@@ -51,6 +54,34 @@ export default function BookingsTableClient({
       style: "currency",
       currency: "JPY",
     }).format(amount);
+  };
+
+  // Helper to get formatted date for a booking
+  const getBookingDisplayDate = (booking: Booking): string => {
+    // If we have booking_items with dates, use the first one
+    if (booking.booking_items && booking.booking_items.length > 0) {
+      const firstItem = booking.booking_items[0];
+      return formatBookingItemDate({
+        travel_date: firstItem.travel_date,
+        start_date: firstItem.start_date,
+        end_date: firstItem.end_date,
+      });
+    }
+    
+    // Fallback to booking.travel_date if no items
+    if (booking.travel_date) {
+      try {
+        return new Date(booking.travel_date).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric"
+        });
+      } catch {
+        return "—";
+      }
+    }
+    
+    return "—";
   };
 
   const filteredBookings = useMemo(() => {
@@ -369,7 +400,7 @@ export default function BookingsTableClient({
                     }`}
                   >
                     <td className="px-4 py-3 text-sm text-gray-600 border-b">
-                      {new Date(booking.travel_date).toLocaleDateString()}
+                      {getBookingDisplayDate(booking)}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-900 border-b font-mono">
                       {booking.reference_code}

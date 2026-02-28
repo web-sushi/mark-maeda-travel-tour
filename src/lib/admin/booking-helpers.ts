@@ -1,66 +1,17 @@
 import { createClient } from "@/lib/supabase/server";
 import { BookingItemRow, EnhancedBookingItem } from "@/types/booking";
+import { 
+  formatDate as formatDateUtil, 
+  formatTime as formatTimeUtil, 
+  formatDateRange as formatDateRangeUtil,
+  formatBookingItemDate as formatBookingItemDateUtil
+} from "./date-formatters";
 
-/**
- * Format date range for display
- */
-export function formatDateRange(startDate: string | null | undefined, endDate: string | null | undefined): string {
-  if (!startDate && !endDate) return "—";
-  
-  const start = startDate ? new Date(startDate).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric"
-  }) : null;
-  
-  const end = endDate ? new Date(endDate).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric"
-  }) : null;
-  
-  if (start && end && start !== end) {
-    return `${start} – ${end}`;
-  }
-  
-  return start || end || "—";
-}
-
-/**
- * Format single date for display
- */
-export function formatDate(dateString: string | null | undefined): string {
-  if (!dateString) return "—";
-  
-  try {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric"
-    });
-  } catch {
-    return "—";
-  }
-}
-
-/**
- * Format time for display
- */
-export function formatTime(timeString: string | null | undefined): string {
-  if (!timeString) return "—";
-  
-  try {
-    // timeString is in format HH:MM:SS or HH:MM
-    const [hours, minutes] = timeString.split(':');
-    const hour = parseInt(hours);
-    const min = minutes || '00';
-    const ampm = hour >= 12 ? 'PM' : 'AM';
-    const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
-    return `${displayHour}:${min} ${ampm}`;
-  } catch {
-    return timeString;
-  }
-}
+// Re-export client-safe date formatters
+export const formatDate = formatDateUtil;
+export const formatTime = formatTimeUtil;
+export const formatDateRange = formatDateRangeUtil;
+export const formatBookingItemDate = formatBookingItemDateUtil;
 
 /**
  * Get the effective date for an item (for sorting/display)
