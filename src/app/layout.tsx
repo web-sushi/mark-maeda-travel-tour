@@ -14,9 +14,16 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const metadataBase = new URL("https://markmaedatravelandtour.com");
+
 export const metadata: Metadata = {
+  metadataBase,
   title: "Mark Maeda Travel & Tour",
   description: "Private Japan tours, transfers, and curated travel experiences",
+  robots: {
+    index: true,
+    follow: true,
+  },
   icons: {
     icon: [
       { url: "/favicon.ico" },
