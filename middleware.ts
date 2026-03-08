@@ -32,9 +32,10 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  // Include /api/stripe/webhook so we explicitly handle it above (bypass all logic).
+  // NOTE: matcher entries must be static string literals so Next.js
+  // can statically analyze them at build time.
   matcher: [
-    STRIPE_WEBHOOK_PATH,
+    "/api/stripe/webhook",
     "/admin/:path*",
     "/admin-register/:path*",
     "/admin-login/:path*",
