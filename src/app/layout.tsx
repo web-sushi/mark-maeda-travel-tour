@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const metadataBase = new URL("https://markmaedatravelandtour.com");
+const metadataBase = new URL("https://www.markmaedatravelandtour.com");
 
 export const metadata: Metadata = {
   metadataBase,

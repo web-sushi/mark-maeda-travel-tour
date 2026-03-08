@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { createClient } from "@supabase/supabase-js";
 
-const BASE_URL = "https://markmaedatravelandtour.com";
+const BASE_URL = "https://www.markmaedatravelandtour.com";
 
 const STATIC_ROUTES = [
   "",
