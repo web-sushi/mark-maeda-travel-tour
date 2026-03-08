@@ -9,27 +9,40 @@ const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 /**
  * Stripe Webhook Handler
- * 
+ *
  * Handles:
  * - checkout.session.completed (immediate card payments)
  * - checkout.session.async_payment_succeeded (delayed payments: konbini, bank transfer)
  * - checkout.session.async_payment_failed (failed delayed payments)
  * - payment_intent.succeeded (fallback)
  * - charge.refunded (refund processing)
- * 
+ *
  * Features:
  * - Signature verification with raw request body
  * - Idempotency via stripe_webhook_events table
  * - Support for 2-payment flow (deposit + balance)
  * - Proper payment status management
  * - Refund handling
+ *
+ * IMPORTANT: This endpoint must NEVER redirect (no 307/308).
+ * Stripe webhooks require a direct 200 response.
  */
 export async function POST(request: NextRequest) {
+  const pathname = request.nextUrl.pathname;
+  const method = request.method;
+  const hasSignature = !!request.headers.get("stripe-signature");
+  console.log("[Stripe Webhook] Incoming:", {
+    method,
+    pathname,
+    hasSignature,
+  });
+
   try {
     const stripe = getStripe();
     
     if (!webhookSecret) {
       console.error("[Stripe Webhook] Missing STRIPE_WEBHOOK_SECRET");
+      console.log("[Stripe Webhook] Returning status: 500");
       return NextResponse.json(
         { error: "Missing webhook secret configuration" },
         { status: 500 }
@@ -42,6 +55,7 @@ export async function POST(request: NextRequest) {
 
     if (!signature) {
       console.error("[Stripe Webhook] Missing stripe-signature header");
+      console.log("[Stripe Webhook] Returning status: 400 (no signature)");
       return NextResponse.json(
         { error: "Missing stripe-signature header" },
         { status: 400 }
@@ -54,6 +68,7 @@ export async function POST(request: NextRequest) {
       event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
     } catch (err) {
       console.error("[Stripe Webhook] Signature verification failed:", err);
+      console.log("[Stripe Webhook] Returning status: 400 (signature verification failed)");
       return NextResponse.json(
         { error: "Invalid signature" },
         { status: 400 }
@@ -77,6 +92,7 @@ export async function POST(request: NextRequest) {
 
     if (existingEvent) {
       console.log(`[Stripe Webhook] ⏭️  Event ${event.id} already processed, skipping`);
+      console.log("[Stripe Webhook] Returning status: 200 (already processed)");
       return NextResponse.json({ received: true, message: "Already processed" });
     }
 
@@ -124,15 +140,23 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    console.log("[Stripe Webhook] Returning status: 200 (handled)");
     return NextResponse.json({ received: true });
   } catch (error) {
     console.error("[Stripe Webhook] ❌ Error:", error);
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    console.log("[Stripe Webhook] Returning status: 400 (handler error)");
     return NextResponse.json(
       { error: "Webhook handler failed", details: errorMessage },
       { status: 400 }
     );
   }
+}
+
+// Non-POST requests: return 405 directly (no redirect)
+export async function GET() {
+  console.log("[Stripe Webhook] GET requested - method not allowed");
+  return NextResponse.json({ error: "Method Not Allowed" }, { status: 405 });
 }
 
 // ==================== HANDLER FUNCTIONS ====================
