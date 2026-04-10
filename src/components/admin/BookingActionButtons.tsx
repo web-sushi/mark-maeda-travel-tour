@@ -174,16 +174,30 @@ export default function BookingActionButtons({
         payment_status: paymentStatus,
       });
 
-      // Send review request email (non-blocking)
+      // Send "tour completed" notification email (non-blocking)
       try {
-        const response = await fetch("/api/review/request", {
+        const completedRes = await fetch("/api/notify/booking-event", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ bookingId, eventType: "booking_completed" }),
+        });
+        if (!completedRes.ok) {
+          console.error("booking_completed email failed:", await completedRes.text());
+        }
+      } catch (emailError) {
+        console.error("Failed to send booking_completed email:", emailError);
+      }
+
+      // Send review request email (non-blocking, separate from completion notice)
+      try {
+        const reviewRes = await fetch("/api/review/request", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ bookingId }),
         });
 
-        if (!response.ok) {
-          console.error("Review request failed:", await response.text());
+        if (!reviewRes.ok) {
+          console.error("Review request failed:", await reviewRes.text());
           setEmailWarning("Review request email may have failed.");
         }
       } catch (emailError) {

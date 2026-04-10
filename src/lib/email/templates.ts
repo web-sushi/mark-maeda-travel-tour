@@ -1038,7 +1038,103 @@ If you have any questions or need assistance, please contact us with your refere
   return { subject, html, text };
 }
 
-// 11. Payment Failed - Admin
+// 11. Booking Completed - Customer
+// Sent when admin marks booking as "completed" (tour/transfer has happened)
+export function bookingCompletedCustomer(booking: Booking, items: BookingItemRow[]) {
+  const subject = `Thank You – Your Experience is Complete! (${booking.reference_code})`;
+  const trackingLink = getTrackingLink(booking.reference_code);
+  const dateRange = formatDateRange(items);
+
+  const itemsHTML = items
+    .map(
+      (item) => `
+      <div style="margin: 10px 0; padding: 12px; background-color: #f0fdf4; border-radius: 6px; border-left: 3px solid #10b981;">
+        <div style="display: flex; align-items: center; margin-bottom: 6px;">
+          <span style="display: inline-block; background-color: #10b981; color: #ffffff; padding: 2px 7px; border-radius: 3px; font-size: 10px; font-weight: bold; margin-right: 8px;">
+            ${getItemTypeBadge(item.item_type)}
+          </span>
+          <strong style="font-size: 14px; color: #111827;">${item.title || `${item.item_type} (ID: ${item.item_id})`}</strong>
+        </div>
+        <p style="margin: 3px 0; font-size: 13px; color: #4b5563;">
+          <strong>Date:</strong> ${formatDate(item.travel_date || item.start_date)}
+        </p>
+        <p style="margin: 3px 0; font-size: 13px; color: #4b5563;">
+          ${getItemLocationLine(item)}
+        </p>
+        ${item.passengers_count ? `<p style="margin: 3px 0; font-size: 13px; color: #4b5563;"><strong>Passengers:</strong> ${item.passengers_count}</p>` : ""}
+      </div>
+    `
+    )
+    .join("");
+
+  const html = createEmailHTML(`
+    <div style="background-color: #10b981; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+      <h1 style="margin: 0; color: #ffffff;">Thank You – Experience Complete!</h1>
+    </div>
+    <div style="background-color: #ffffff; padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px;">
+      <p>Dear ${booking.customer_name},</p>
+      <p>We hope you had a wonderful experience with us! Your tour or transfer has now been completed.</p>
+      <p>It was truly a pleasure serving you, and we hope to welcome you again in the future.</p>
+
+      <div style="margin: 20px 0;">
+        <p style="margin: 8px 0;"><strong>Reference Code:</strong> ${booking.reference_code}</p>
+        <p style="margin: 8px 0;"><strong>Travel Date(s):</strong> ${dateRange}</p>
+      </div>
+
+      ${items.length > 0 ? `
+      <div style="margin: 20px 0;">
+        <h3 style="color: #374151; margin: 0 0 10px 0;">Completed Services</h3>
+        ${itemsHTML}
+      </div>` : ""}
+
+      <div style="margin: 20px 0; background-color: #d1fae5; padding: 15px; border-radius: 6px; border-left: 4px solid #10b981;">
+        <p style="margin: 0; color: #065f46;">
+          <strong>Loved your experience?</strong> We'd really appreciate if you could share your feedback — it helps us improve and helps future travellers!
+        </p>
+      </div>
+
+      <p style="margin-top: 20px;">
+        <a href="${trackingLink}" style="color: #2563eb; text-decoration: none;">View your booking details</a>
+      </p>
+
+      <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; color: #6b7280; font-size: 14px;">
+        <p>Thank you for choosing Mark Maeda Travel &amp; Tour. We look forward to serving you again!</p>
+      </div>
+    </div>
+  `);
+
+  const itemsText = items
+    .map(
+      (item) =>
+        `${getItemTypeBadge(item.item_type)}: ${item.title || `${item.item_type} (ID: ${item.item_id})`}\n` +
+        `  Date: ${formatDate(item.travel_date || item.start_date)}\n` +
+        `  ${getItemLocationLine(item)}`
+    )
+    .join("\n---\n");
+
+  const text = `
+Thank You – Experience Complete!
+
+Dear ${booking.customer_name},
+
+We hope you had a wonderful experience with us! Your tour or transfer has now been completed.
+
+Reference Code: ${booking.reference_code}
+Travel Date(s): ${dateRange}
+
+${items.length > 0 ? `Completed Services:\n${itemsText}\n` : ""}
+
+Loved your experience? We'd really appreciate if you could share your feedback — it helps us improve and helps future travellers!
+
+View your booking: ${trackingLink}
+
+Thank you for choosing Mark Maeda Travel & Tour. We look forward to serving you again!
+  `.trim();
+
+  return { subject, html, text };
+}
+
+// 12. Payment Failed - Admin
 export function paymentFailedAdmin(
   booking: Booking,
   items: BookingItemRow[],

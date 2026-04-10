@@ -181,7 +181,7 @@ export async function POST(req: Request) {
   });
 
   // Safeguard: if admin email === from email, use fallback to avoid self-send filtering
-  let finalAdminEmail = adminEmail;
+  let finalAdminEmail: string | null = adminEmail;
   if (adminEmail && emailFrom && adminEmail.toLowerCase() === emailFrom.toLowerCase()) {
     const fallbackAdminEmail = process.env.ADMIN_EMAIL;
     if (fallbackAdminEmail && fallbackAdminEmail.toLowerCase() !== emailFrom.toLowerCase()) {

@@ -8,6 +8,7 @@ export interface EmailToggles {
   booking_confirmed?: boolean;
   payment_paid?: boolean;
   booking_cancelled?: boolean;
+  booking_completed?: boolean; // "tour/transfer completed" notification to customer
 }
 
 export interface AppSettings {
