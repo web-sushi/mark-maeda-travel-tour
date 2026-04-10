@@ -113,6 +113,9 @@ export default function TourForm({ mode, tourId, initialData }: TourFormProps) {
           : [],
         cover_image_path: formData.cover_image_path,
         gallery_image_paths: formData.gallery_image_paths,
+        // Featured / Hot Tour fields — previously omitted from payload (bug fix)
+        is_featured: formData.is_featured,
+        featured_rank: formData.featured_rank,
       };
 
       if (mode === "new" && !currentId) {
