@@ -7,6 +7,17 @@ const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
+// Temporary admin email recipient for internal notifications.
+// To update: change ADMIN_EMAIL in Vercel env vars, or update this fallback.
+const TEMP_ADMIN_EMAIL = "markmaedatravelandtours@gmail.com";
+
+/** Resolve the admin email to use: env var takes priority, fallback to TEMP_ADMIN_EMAIL */
+function resolveAdminEmail(customerEmailFallback?: string): string {
+  const resolved = process.env.ADMIN_EMAIL || TEMP_ADMIN_EMAIL;
+  console.log(`[Stripe Webhook] Admin email resolved: ${resolved}`);
+  return resolved;
+}
+
 /**
  * Stripe Webhook Handler
  *
@@ -225,8 +236,11 @@ async function handleCheckoutCompleted(
 
         // Admin email
         const adminEmail = paymentPendingAdmin(booking, items, paymentAmount, paymentMethodType);
+        const adminRecipientPending = resolveAdminEmail();
+        console.log(`[Stripe Webhook] 📧 Sending payment-pending admin email to: ${adminRecipientPending}`);
         await sendBrevoEmail({
-          to: process.env.ADMIN_EMAIL || booking.customer_email,
+          to: adminRecipientPending,
+          replyTo: adminRecipientPending,
           subject: adminEmail.subject,
           html: adminEmail.html,
           text: adminEmail.text,
@@ -398,8 +412,11 @@ async function handleAsyncPaymentFailed(
 
     // Admin email
     const adminEmail = paymentFailedAdmin(booking, items, paymentAmount, paymentMethodType);
+    const adminRecipientFailed = resolveAdminEmail();
+    console.log(`[Stripe Webhook] 📧 Sending payment-failed admin email to: ${adminRecipientFailed}`);
     await sendBrevoEmail({
-      to: process.env.ADMIN_EMAIL || booking.customer_email,
+      to: adminRecipientFailed,
+      replyTo: adminRecipientFailed,
       subject: adminEmail.subject,
       html: adminEmail.html,
       text: adminEmail.text,

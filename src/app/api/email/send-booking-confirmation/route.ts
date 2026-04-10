@@ -175,14 +175,10 @@ export async function POST(request: Request) {
 
     const errors: string[] = [];
 
-    // Determine admin email (use env var or fallback to customer email for testing)
-    const adminEmail = process.env.ADMIN_EMAIL || customerEmail;
-    if (!process.env.ADMIN_EMAIL) {
-      console.warn(
-        "ADMIN_EMAIL not set, sending admin notification to customer email for testing:",
-        customerEmail
-      );
-    }
+    // Temporary admin email — update ADMIN_EMAIL env var when branded inbox is ready
+    const TEMP_ADMIN_EMAIL = "markmaedatravelandtours@gmail.com";
+    const adminEmail = process.env.ADMIN_EMAIL || TEMP_ADMIN_EMAIL;
+    console.log("[send-booking-confirmation] 📧 Admin email recipient:", adminEmail);
 
     // Send admin notification email
     try {

@@ -163,11 +163,13 @@ export async function POST(req: Request) {
   // 1. app_settings.admin_notification_email (new field)
   // 2. app_settings.admin_notify_email (old field, backwards compat)
   // 3. env.ADMIN_EMAIL (fallback)
+  // 4. TEMP_ADMIN_EMAIL (hardcoded temporary fallback — update when branded inbox is ready)
+  const TEMP_ADMIN_EMAIL = "markmaedatravelandtours@gmail.com";
   const adminEmail = 
     appSettings?.admin_notification_email ||
     appSettings?.admin_notify_email || 
     process.env.ADMIN_EMAIL || 
-    null;
+    TEMP_ADMIN_EMAIL;
   
   const customerEmail = booking.customer_email;
   const emailFrom = process.env.EMAIL_FROM || "";
@@ -259,11 +261,12 @@ export async function POST(req: Request) {
   // Send admin email (if enabled and email configured)
   if (emailToggles.booking_received_admin !== false) {
     if (finalAdminEmail) {
-      console.log("[booking-created] Sending admin email to:", finalAdminEmail);
+      console.log("[booking-created] 📧 Sending admin email to:", finalAdminEmail);
       try {
         const adminTemplate = bookingReceivedAdmin(booking as Booking, items);
         await sendBrevoEmail({
           to: finalAdminEmail,
+          replyTo: finalAdminEmail,
           subject: adminTemplate.subject,
           html: adminTemplate.html,
           text: adminTemplate.text,

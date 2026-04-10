@@ -6,6 +6,8 @@ interface SendBrevoEmailParams {
   subject: string;
   html: string;
   text?: string;
+  /** Optional reply-to address (used for admin/internal emails) */
+  replyTo?: string;
 }
 
 export async function sendBrevoEmail({
@@ -13,6 +15,7 @@ export async function sendBrevoEmail({
   subject,
   html,
   text,
+  replyTo,
 }: SendBrevoEmailParams): Promise<void> {
   const apiKey = process.env.BREVO_API_KEY;
   const emailFrom = process.env.EMAIL_FROM;
@@ -35,6 +38,7 @@ export async function sendBrevoEmail({
     subject,
     htmlContent: html,
     ...(text && { textContent: text }),
+    ...(replyTo && { replyTo: { email: replyTo } }),
   };
 
   const response = await fetch("https://api.brevo.com/v3/smtp/email", {
