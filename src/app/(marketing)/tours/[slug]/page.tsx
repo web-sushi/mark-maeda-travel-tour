@@ -7,6 +7,7 @@ import BookingCard from "@/components/shared/BookingCard";
 import TourDescription from "@/components/tours/TourDescription";
 import RatingSummary from "@/components/reviews/RatingSummary";
 import ReviewsList from "@/components/reviews/ReviewsList";
+import { TourPlace } from "@/types/tour";
 
 export const dynamic = "force-dynamic";
 
@@ -28,6 +29,13 @@ export default async function TourDetailPage({
   if (error || !tour) {
     notFound();
   }
+
+  // Fetch selectable places for this tour
+  const { data: tourPlaces } = await supabase
+    .from("tour_places")
+    .select("*")
+    .eq("tour_id", tour.id)
+    .order("display_order", { ascending: true });
 
   // Fetch reviews from v_reviews_expanded
   const { data: reviews } = await supabase
@@ -193,6 +201,7 @@ export default async function TourDetailPage({
                 title={tour.title}
                 vehicleRates={vehicleRates}
                 cardTitle="Book This Tour"
+                places={(tourPlaces ?? []) as TourPlace[]}
               />
             </div>
           </div>

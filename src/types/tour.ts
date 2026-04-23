@@ -1,5 +1,15 @@
 import { VehicleRates } from "./vehicle";
 
+export interface TourPlace {
+  id: string;
+  tour_id: string;
+  name: string;
+  image_path: string | null;
+  description: string | null;
+  display_order: number;
+  created_at?: string;
+}
+
 export interface Tour {
   id: string;
   slug: string;

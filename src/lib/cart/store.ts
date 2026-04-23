@@ -1,4 +1,5 @@
 import { VehicleSelection, VehicleRates } from "@/types/vehicle";
+import { TourPlace } from "@/types/tour";
 
 export interface TripDetails {
   pickupLocation?: string;
@@ -21,6 +22,7 @@ export interface CartItem {
   vehicleSelection: VehicleSelection;
   vehicleRates: VehicleRates;
   tripDetails?: TripDetails;
+  selectedPlaces?: TourPlace[];
 }
 
 const CART_STORAGE_KEY = "tour_webapp_cart";

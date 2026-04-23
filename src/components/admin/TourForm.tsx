@@ -10,6 +10,7 @@ import { sanitizeSlug } from "@/utils/slug";
 import VehicleRatesEditor from "./VehicleRatesEditor";
 import ImageUploader from "./ImageUploader";
 import GalleryUploader from "./GalleryUploader";
+import TourPlacesEditor from "./TourPlacesEditor";
 import { VehicleRates } from "@/types/vehicle";
 
 interface TourFormData {
@@ -382,6 +383,19 @@ export default function TourForm({ mode, tourId, initialData }: TourFormProps) {
           <div className="pt-4 border-t">
             <p className="text-sm text-gray-600">
               Save the tour first to enable image uploads
+            </p>
+          </div>
+        )}
+
+        {/* Selectable Places - Only available after tour is created */}
+        {currentId ? (
+          <div className="pt-4 border-t">
+            <TourPlacesEditor tourId={currentId} />
+          </div>
+        ) : (
+          <div className="pt-4 border-t">
+            <p className="text-sm text-gray-600">
+              Save the tour first to manage selectable places
             </p>
           </div>
         )}

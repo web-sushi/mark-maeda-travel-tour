@@ -132,6 +132,21 @@ export async function POST(request: NextRequest) {
         meta.special_requests = tripDetails.specialRequests;
       }
 
+      // Persist selected places (array of {id, name} objects) in meta
+      if (Array.isArray(item.selectedPlaces) && item.selectedPlaces.length > 0) {
+        meta.selected_places = item.selectedPlaces.map((p: any) => ({
+          id: p.id,
+          name: p.name,
+        }));
+
+        // Also append a human-readable summary to extra_details / special_requests
+        const placeNames = item.selectedPlaces.map((p: any) => p.name).join(", ");
+        const placesNote = `Selected places: ${placeNames}`;
+        meta.extra_details = meta.extra_details
+          ? `${meta.extra_details}\n${placesNote}`
+          : placesNote;
+      }
+
       return {
         booking_id: insertedBooking.id,
         item_type: item.type,
